@@ -4,10 +4,6 @@ title: Manual deployment process for SpringFramework + NextJS on Ubuntu and Ngin
 comments: true
 tags: [spring-framework,java,nginx,ubuntu,deployment,nextjs]
 ---
-
-
-
-
 ### Platform Setup
 
 1. Install Linux OS on a local machine or subscribe to DigitalOcean droplet and install Ubuntu 20 or later. Make sure to login as root (or a suoder user)
