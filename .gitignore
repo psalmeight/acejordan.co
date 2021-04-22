@@ -2,3 +2,13 @@ _site/
 .sass-cache/
 .jekyll-cache/
 .jekyll-metadata
+
+tmp
+*.rdb
+.env
+.sass-cache
+.DS_Store
+.jekyll-cache
+.git
+_site
+.vscode

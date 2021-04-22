@@ -1,0 +1,60 @@
+site: Ace Jordan
+url: acejordan.co
+title: Ace Learning Logs
+description: Ace's documentation of learnings
+googlewebfonts: Fira+Code:wght@400;500;700
+twitter:
+  username: acelumaad
+  card: summary
+  creator: acejordan
+author:
+  twitter: acelumaad
+  name: Ace Jordan
+  avatar:
+  email: acelumaad@live.com
+  url: acejordan.co
+permalink: pretty
+
+baseurl: ""
+
+highlighter: rouge
+
+exclude:
+  - .jekyll-cache
+
+compress_html:
+  clippings: all
+  comments: ["<!-- ", " -->"]
+
+sass:
+  sass_dir: _sass
+  style: :compressed
+
+plugins:
+  - jekyll-paginate
+  - jekyll-seo-tag
+  - jekyll-sitemap
+
+collections:
+  pages:
+    output: true
+    permalink: /:name
+  posts:
+    output: true
+    permalink: /:year/:month/:day/:slug
+
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: "default"
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "page"
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "post"
