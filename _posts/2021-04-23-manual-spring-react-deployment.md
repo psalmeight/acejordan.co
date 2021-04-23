@@ -4,90 +4,131 @@ title: Manual deployment process for SpringFramework + NextJS on Ubuntu and Ngin
 comments: true
 tags: [spring-framework,java,nginx,ubuntu,deployment,nextjs]
 ---
-### Platform Setup
+### 0. Legend
 
-1. Install Linux OS on a local machine or subscribe to DigitalOcean droplet and install Ubuntu 20 or later. Make sure to login as root (or a suoder user)
+- local machine - the machine you are using to access your server
+- server - your ubuntu server
+
+&nbsp;
+
+### 1. Platform Setup
+
+1. Install Linux OS to any cloud VM of your choice (DigitalOcean droplet?) and install Ubuntu 20 or later. Make sure to login as root (or a sudoer user)
 
 2. Update ubuntu packages repo 
-   `apt-get update`
+
+   ```
+   apt-get update
+   ```
 
 3. Install Nginx webserver
-   `apt-get install nginx`
 
-4. Check app list, allow necessary ports
-   `ufw app list // check allowed ports`
-   `ufw allow 22 // allows SSH access (port 22)` 
+   ```
+   apt-get install nginx
+   ```
+
+4. Check your default firewall app list and allow necessary ports
+
+   ```
+   ufw app list
+   ufw allow 22 //allows access request via SSH
+   ```
 
 5. For security, allow ssh access by password is not recommended. However, as initial setup, you may need to temporarily allow this to setup your SSH keys. 
 
-   `pico /etc/ssh/sshd_config`
+   ```
+   pico /etc/ssh/sshd_config
+   ```
 
    Make sure that you convert the value of `PermitRootLogin` and `PasswordAuthentication` to `yes`
 
-   `PermitRootLogin yes`
+   ```
+   PermitRootLogin yes
+   PasswordAuthentication yes
+   ```
 
-   `PasswordAuthentication yes`
+6. You may now access remotely via SSH (w/ password authentication)
 
-6. Access remotely via SSH (w/ password authentication)
+   ```
+   ssh <username>@<ip_address>
+   ```
 
-   `ssh <username>@<ip_address>`
+&nbsp;
 
-   
-
-----------------------------------------
-
-
-
-### Setup Public/Private keys for Remote access via SSH without password (MacOS context)
+### 2. Setup Public/Private keys for Remote access via SSH without password (MacOS context)
 
 1. On your Local Machine (MacOS), copy public key or generate one using `ssh-keygen -t rsa`
 
-   `cat ~/.ssh/id_rsa.pub //copy the public key displayed`
+   ```
+   ssh-keygen -t rsa //execute only if you don't have existing ssh keys
+   
+   cat ~/.ssh/id_rsa.pub //copy the public key displayed
+   ```
 
-2. On your ubuntu, go to your keys file and paste public key from local machine.
+2. On your server, go to your keys file and paste public key from local machine.
 
-   `pico ~/.ssh/authorized_keys //this is the file where your paste your public key.`
+   ```
+   pico ~/.ssh/authorized_keys //this is the file where your paste your public key.
+   ```
 
    Save and exit editor after pasting. Then edit ssh config file.
 
-    `pico /etc/ssh/sshd_config`
+   ```
+    pico /etc/ssh/sshd_config
+   ```
 
    Find and change back the `PasswordAuthentication` to "no" value.
 
-   `PasswordAuthentication no`
+   ```
+   PasswordAuthentication no
+   ```
 
    Save and exit editor then make sure to restart your SSH Service.
-   `service sshd restart`
 
-3. Now close your terminal and access back your ubuntu server via SSH. Notice that it will not ask for a password anymore.
+   ```
+   service sshd restart
+   ```
+
+3. Now close your terminal and access back your ubuntu server via SSH from your local machine terminal. Notice that it will not ask for a password anymore.
 
    
 
-------------------------------------
+&nbsp;
 
-
-
-### Installation of Java, Postgre, Redis, NodeJS/npm and nginx_ensite
+### 3. Installation of Java, Postgre, Redis, NodeJS/npm and nginx_ensite
 
 1. Install Java with the following command:
 
-   `apt install openjdk-8-jre-headless`
+   ```
+   apt install openjdk-8-jre-headless
+   ```
 
    After installation, test if java installation is succesful by typing:
 
-   `java -version //this should display your java version`
+   ```
+   java -version //this should display your java version
+   ```
 
 2. Install PostgreSQL
 
-   `apt-get install postgresql postgresql-contrib`
+   ```
+   apt-get install postgresql postgresql-contrib
+   ```
 
    Change default postgres password
 
-   `sudo -u postgres psql`
+   ```
+   sudo -u postgres psql
+   ```
 
-   Then type: `ALTER USER postgres PASSWORD 'new_password';`
+   Then type: 
 
-   To exit, type: `\q //then hit Enter`
+   ```
+   ALTER USER postgres PASSWORD 'new_password';
+   
+   --To exit type:
+   \q
+   ```
 
    I suggest that you use a Postgre Manager (connect via SSH) to create database and manage tables.
 
@@ -95,67 +136,99 @@ tags: [spring-framework,java,nginx,ubuntu,deployment,nextjs]
 
 3. Install Redis (Optional. Only if your application uses redis service)
 
-   `sudo apt install redis-server`
+   ```
+   sudo apt install redis-server
+   ```
 
-   To check redis status, type: `systemctl status redis`
+   To check redis status, type: 
+
+   ```
+   systemctl status redis
+   ```
 
 4. Install NodeJS and NPM
 
-   `apt install nodejs`
+   ```
+   apt install nodejs
+   ```
 
-   Verify installation by typing: `node --version`
+   Verify installation by typing: 
 
-   Verify also `npm` installation by typing: `npm --version`
+   ```
+   node --version
+   ```
 
-   If `npm` was not found, install it by typing `apt install npm`
+   Verify also `npm` installation by typing: 
+
+   ```
+   npm --version
+   ```
+
+   If `npm` was not found, install it by typing 
+
+   ```
+   apt install npm
+   ```
 
 5. Install nginx_ensite. This application allows easy enabling and disabling of nginx config files.
 
    You may choose where you want to store nginx_ensite but let's assume you are on your root folder.
 
-   `git clone https://github.com/perusio/nginx_ensite.git`
+   ```
+   git clone https://github.com/perusio/nginx_ensite.git
+   
+   cd nginx_ensite && make install 
+   ```
 
-   `cd nginx_ensite`
+   If you don't have `make` module on your server, install it by typing: 
 
-   `make install` 
-
-   If you don't have `make` app, install it by typing: `apt-get install make`
+   ```
+   apt-get install make
+   ```
 
    or if you want to install the whole essential libs/apps (which also contains the `make`), you may install 
 
-   `sudo apt-get install build-essential` 
+   ```
+   sudo apt-get install build-essential
+   ```
 
-   
+&nbsp;
 
-----------------------------
-
-
-
-### Setting up of your Java and Next app
+### 4. Setting up of your Java and Next app
 
 1. Make a folder on where you want to store your Java app (.jar file) and your NextJS folder. For the sake of this tutorial, let's assume you place it on your `/home/project`
 
-   Structure:
+   Folder structure:
 
-   `/home/project/<app_name>.jar`
-
-   `/home/project/<next_folder>`
+   ```
+   /home/project/<app_name>.jar
+   
+   /home/project/<next_folder>
+   ```
 
    Make sure that you have initiated a build already on your next folder. If not, then type:
 
-   `cd /home/project/<next_folder> && npm run build`
+   ```
+   cd /home/project/<next_folder> && npm run build
+   ```
 
 2. Create a daemon/service to easily manage your application.
 
-   Go to System folder: `cd /etc/systemd/system`
+   Go to System folder: 
+
+   ```
+   cd /etc/systemd/system
+   ```
 
    (This may not be best practice or may have more other practical ways but anyway....)
 
    Create 2 service files: 1 for your Java app and 1 for your Next app
 
-   `touch <java_app_name>.service`
-
-   `touch <next_app_name>.service`
+   ```
+   touch <java_app_name>.service
+   
+   touch <next_app_name>.service
+   ```
 
    ------------------------
 
@@ -204,22 +277,30 @@ tags: [spring-framework,java,nginx,ubuntu,deployment,nextjs]
    ```
 
 3. Run you application services:
-   `service <java_app_name> start`
-   `service <next_app_name> start`
+
+   ```
+   service <java_app_name> start // to start java
+   
+   service <next_app_name> start // to start next app
+   ```
 
 4. Next is you may need to configure nginx to make sure that when user from outside access your application via port `80` it will be redirected to their corresponding run ports. 
 
    To do this, you need to create 2 config files for nginx:
 
-   `cd /etc/nginx/sites-available` 
+   ```
+   cd /etc/nginx/sites-available
+   ```
 
    There is already a default file called `default` that listens to port `80` ( you can see this by typing `ls`). However, we want to create a file that just contains enough config for our app. So for now, let us just disable `default` file and create our own 2 files `javaapp`and `nextapp`
 
    To do this, type:
 
-   `touch javaapp`
-
-   `touch nextapp`
+   ```
+   touch javaapp
+   
+   touch nextapp
+   ```
 
    The commands above will create 2 empty files `javapp` and `nextapp`. You may verify this by typing `ls`.
 
@@ -273,11 +354,9 @@ tags: [spring-framework,java,nginx,ubuntu,deployment,nextjs]
 
 4. At this point, accessing `http://myapp.com` should now redirect to your Next application landing page
 
------------
+&nbsp;
 
-
-
-### Free SSL via Let's Encrypt!
+### 5. Free SSL via Let's Encrypt!
 
 If you want to SSL certificate for your web app for free, you can do it with Let's Encrypt.
 
@@ -285,10 +364,16 @@ If you want to SSL certificate for your web app for free, you can do it with Let
 
 2. Type in certbot command. Certbot will be the one to automatically configure your nginx files so that whenever it receives a request on port `80` it will automatically redirect you to `443` which triggers the process of automatic request/identify/signing/encryption.
 
-   `certbot --nginx -d myapp.com`
+   ```
+   certbot --nginx -d myapp.com
+   
+   certbot --nginx -d srv.myapp.com
+   ```
 
-   `certbot --nginx -d srv.myapp.com`
+   Reload nginx, 
 
-   Reload nginx, `service nginx reload`
+   ```
+   service nginx reload
+   ```
 
 3. That's it!
