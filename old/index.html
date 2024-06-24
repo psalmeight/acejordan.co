@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bootstrap demo</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+      crossorigin="anonymous"
+    />
+    <link href="styles.css" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="container-md">
+      <h3>0. Legend</h3>
+      <ul>
+        <li>local machine - the machine you are using to access your server</li>
+        <li>server - your ubuntu server</li>
+      </ul>
+      <h3>1. Platform Setup</h3>
+      <ol>
+        <li>
+          <p>
+            Install Linux OS to any cloud VM of your choice (DigitalOcean
+            droplet?) and install Ubuntu 20 or later. Make sure to login as root
+            (or a sudoer user)
+          </p>
+        </li>
+        <li>
+          <p>Update ubuntu packages repo</p>
+          <pre><code>apt-get update 
+    </code></pre>
+        </li>
+        <li>
+          <p>Install Nginx webserver</p>
+          <pre><code>apt-get  install nginx
+    </code></pre>
+        </li>
+        <li>
+          <p>Check your default firewall app list and allow necessary ports</p>
+          <pre><code>ufw app list 
+    ufw allow 22 //allows access request via SSH 
+    </code></pre>
+        </li>
+        <li>
+          <p>
+            For security, allow ssh access by password is not recommended.
+            However, as initial setup, you may need to temporarily allow this to
+            setup your SSH keys.
+          </p>
+          <pre><code>pico /etc/ ssh/sshd_config 
+    </code></pre>
+          <p>
+            Make sure that you convert the value of
+            <code>PermitRootLogin</code> and
+            <code>PasswordAuthentication</code> to <code>yes</code>
+          </p>
+          <pre><code>PermitRootLogin yes 
+    PasswordAuthentication yes 
+    </code></pre>
+        </li>
+        <li>
+          <p>
+            You may now access remotely via SSH (w/ password authentication)
+          </p>
+          <pre><code>ssh &lt;username &gt; @&lt;ip_address &gt; 
+    </code></pre>
+        </li>
+      </ol>
+      <h3>
+        2. Setup Public/Private keys for Remote access via SSH without password
+        (MacOS context)
+      </h3>
+      <ol>
+        <li>
+          <p>
+            On your Local Machine (MacOS), copy public key or generate one using
+            <code>ssh-keygen -t rsa</code>
+          </p>
+          <pre><code>ssh-keygen -t rsa //execute only if you don't have existing ssh keys 
+    cat ~/.ssh/id_rsa.pub //copy the public key displayed 
+    </code></pre>
+        </li>
+        <li>
+          <p>
+            On your server, go to your keys file and paste public key from local
+            machine.
+          </p>
+          <pre><code>pico ~/.ssh/ authorized_keys //this is the file where your paste your public key. 
+    </code></pre>
+          <p>Save and exit editor after pasting. Then edit ssh config file.</p>
+          <pre><code> pico /etc/ ssh/sshd_config 
+    </code></pre>
+          <p>
+            Find and change back the <code>PasswordAuthentication</code> to
+            &quot;no&quot; value.
+          </p>
+          <pre><code>PasswordAuthentication no 
+    </code></pre>
+          <p>
+            Save and exit editor then make sure to restart your SSH Service.
+          </p>
+          <pre><code>service sshd restart 
+    </code></pre>
+        </li>
+        <li>
+          <p>
+            Now close your terminal and access back your ubuntu server via SSH
+            from your local machine terminal. Notice that it will not ask for a
+            password anymore.
+          </p>
+        </li>
+      </ol>
+      <h3>
+        3. Installation of Java, Postgre, Redis, NodeJS/npm and nginx_ensite
+      </h3>
+      <ol>
+        <li>
+          <p>Install Java with the following command:</p>
+          <pre><code>apt install  openjdk-8 -jre-headless
+    </code></pre>
+          <p>
+            After installation, test if java installation is succesful by
+            typing:
+          </p>
+          <pre><code>java -version //this should display your java version 
+    </code></pre>
+        </li>
+        <li>
+          <p>Install PostgreSQL</p>
+          <pre><code>apt-get  install postgresql postgresql-contrib
+    </code></pre>
+          <p>Change default postgres password</p>
+          <pre><code>sudo -u postgres psql 
+    </code></pre>
+          <p>Then type:</p>
+          <pre><code>ALTER USER postgres PASSWORD 'new_password' ;
+    --To exit  type:
+    \q
+    </code></pre>
+          <p>
+            I suggest that you use a Postgre Manager (connect via SSH) to create
+            database and manage tables.
+          </p>
+          <p>Recommended: pgAdmin, TablePlus, dBeaver etc.</p>
+        </li>
+        <li>
+          <p>
+            Install Redis (Optional. Only if your application uses redis
+            service)
+          </p>
+          <pre><code>sudo apt install  redis-server 
+    </code></pre>
+          <p>To check redis status, type:</p>
+          <pre><code>systemctl status redis 
+    </code></pre>
+        </li>
+        <li>
+          <p>Install NodeJS and NPM</p>
+          <pre><code>apt install  nodejs
+    </code></pre>
+          <p>Verify installation by typing:</p>
+          <pre><code>node --version 
+    </code></pre>
+          <p>Verify also <code>npm</code> installation by typing:</p>
+          <pre><code>npm --version 
+    </code></pre>
+          <p>If <code>npm</code> was not found, install it by typing</p>
+          <pre><code>apt install  npm
+    </code></pre>
+        </li>
+        <li>
+          <p>
+            Install nginx_ensite. This application allows easy enabling and
+            disabling of nginx config files.
+          </p>
+          <p>
+            You may choose where you want to store nginx_ensite but let&#39;s
+            assume you are on your root folder.
+          </p>
+          <pre><code>git clone https: //github.com /perusio/nginx_ensite.git
+    cd  nginx_ensite &amp;&amp; make  install
+    </code></pre>
+          <p>
+            If you don&#39;t have <code>make</code> module on your server,
+            install it by typing:
+          </p>
+          <pre><code>apt-get  install make 
+    </code></pre>
+          <p>
+            or if you want to install the whole essential libs/apps (which also
+            contains the <code>make</code>), you may install
+          </p>
+          <pre><code>sudo apt-get install build -essential
+    </code></pre>
+        </li>
+      </ol>
+      <h3>4. Setting up of your Java and Next app</h3>
+      <ol>
+        <li>
+          <p>
+            Make a folder on where you want to store your Java app (.jar file)
+            and your NextJS folder. For the sake of this tutorial, let&#39;s
+            assume you place it on your <code>/home/project</code>
+          </p>
+          <p>Folder structure:</p>
+          <pre><code>/home/ project/&lt;app_name&gt; .jar
+    /home/ project/&lt;next_folder&gt; 
+    </code></pre>
+          <p>
+            Make sure that you have initiated a build already on your next
+            folder. If not, then type:
+          </p>
+          <pre><code>cd /home /project/&lt;next_folder&gt; &amp;&amp; npm run  build
+    </code></pre>
+        </li>
+        <li>
+          <p>Create a daemon/service to easily manage your application.</p>
+          <p>Go to System folder:</p>
+          <pre><code>cd  /etc/systemd/system 
+    </code></pre>
+          <p>
+            (This may not be best practice or may have more other practical ways
+            but anyway....)
+          </p>
+          <p>
+            Create 2 service files: 1 for your Java app and 1 for your Next app
+          </p>
+          <pre><code>touch &lt;java_app_name &gt; .service
+    touch &lt;next_app_name &gt; .service
+    </code></pre>
+          <hr />
+          <blockquote>
+            <ul>
+              <li>
+                At this point, let us assume that when you run java and next
+                app,
+              </li>
+            </ul>
+            <p>
+              it will run on port <code>8080</code> and port <code>3000</code>
+            </p>
+            <ul>
+              <li>
+                Let us also assume that you have already setup a domain that
+                points to each application.
+              </li>
+            </ul>
+            <p>
+              Example: <code>srv.myapp.com</code> for Java and
+              <code>myapp.com</code> for Frontend/Next app
+            </p>
+          </blockquote>
+          <p>
+            Edit the newly created service files and paste the following
+            content:
+          </p>
+          <pre><code>/------- For &lt;java_app_name&gt;.service --------- /
+    [Unit]
+    Description =Java API Service
+    After =syslog.target
+    After =network.target[Service]
+    [Service]
+    ExecStart =/usr/bin/java -jar /home/project/&lt;app_name&gt;.jar
+    Restart =always
+    StandardOutput =syslog
+    StandardError =syslog
+    SyslogIdentifier =javaapp
+    [Install]
+    WantedBy =multi-user.target
+    /--------- For &lt;next_app_name&gt;.service ----------/
+    [Unit]
+    Description =Next App Service
+    After =syslog.target
+    After =network.target[Service]
+    [Service]
+    ExecStart =/usr/bin/npm start --prefix /home/project/&lt;next_folder&gt;
+    Restart =always
+    StandardOutput =syslog
+    StandardError =syslog
+    SyslogIdentifier =nextapp
+    [Install]
+    WantedBy =multi-user.target
+    </code></pre>
+        </li>
+        <li>
+          <p>Run you application services:</p>
+          <pre><code>service &lt;java_app_name&gt; start  // to start  java
+    service &lt;next_app_name&gt; start  // to start next  app
+    </code></pre>
+        </li>
+        <li>
+          <p>
+            Next is you may need to configure nginx to make sure that when user
+            from outside access your application via port <code>80</code> it
+            will be redirected to their corresponding run ports.
+          </p>
+          <p>To do this, you need to create 2 config files for nginx:</p>
+          <pre><code>cd /etc/nginx/sites-available 
+    </code></pre>
+          <p>
+            There is already a default file called <code>default</code> that
+            listens to port <code>80</code> ( you can see this by typing
+            <code>ls</code>). However, we want to create a file that just
+            contains enough config for our app. So for now, let us just disable
+            <code>default</code> file and create our own 2 files
+            <code>javaapp</code>and <code>nextapp</code>
+          </p>
+          <p>To do this, type:</p>
+          <pre><code>touch  javaapp
+    touch  nextapp
+    </code></pre>
+          <p>
+            The commands above will create 2 empty files <code>javapp</code> and
+            <code>nextapp</code>. You may verify this by typing <code>ls</code>.
+          </p>
+          <p>Next is to write your nginx config to the newly created files:</p>
+          <pre><code>/------ For  javaapp file  -----/
+    server {
+    listen 80;
+    listen [::]:80;
+    root /var /www/html;
+    index index.html index.htm index.nginx-debian.html;
+    server_name srv.myapp.com;
+    location / {
+    proxy_pass http://localhost:8080; 
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for ;
+    proxy_set_header X-Forwarded-Proto $scheme ;
+    proxy_set_header X-Forwarded-Port $server_port ;
+    }
+    }
+    /---------- For  nextapp file  ------------/
+    server {
+    listen 80;
+    listen [::]:80;
+    root /var /www/html;
+    index index.html index.htm index.nginx-debian.html;
+    server_name myapp.com;
+    location / {
+    proxy_pass http://localhost:3000; 
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for ;
+    proxy_set_header X-Forwarded-Proto $scheme ;
+    proxy_set_header X-Forwarded-Port $server_port ;
+    }
+    }
+    </code></pre>
+          <p>
+            As we can observe, notice that both files listens to port
+            <code>80</code> but differs on <code>server_name</code> area.
+          </p>
+          <p>
+            This will mean that whenever we access <code>myapp.com</code>, nginx
+            finds the config that listens to <code>myapp.com</code> on port
+            <code>80</code> and because we have included a
+            <code>proxy_pass</code>, it will then redirect your request to where
+            it has been specified, which is on our case
+            <code>http://localhost:3000</code>. The same pattern works with
+            <code>srv.myapp.com</code>.
+          </p>
+          <p>
+            After the setup above, do not forget to reload nginx service
+            <code>service nginx reload</code>
+          </p>
+        </li>
+        <li>
+          <p>
+            At this point, accessing <code>http://myapp.com</code> should now
+            redirect to your Next application landing page
+          </p>
+        </li>
+      </ol>
+      <h3>5. Free SSL via Let&#39;s Encrypt!</h3>
+      <p>
+        If you want to SSL certificate for your web app for free, you can do it
+        with Let&#39;s Encrypt.
+      </p>
+      <ol>
+        <li>
+          <p>
+            Install certbot on your ubuntu by typing
+            <code>apt-get install python-certbot-nginx</code>
+          </p>
+        </li>
+        <li>
+          <p>
+            Type in certbot command. Certbot will be the one to automatically
+            configure your nginx files so that whenever it receives a request on
+            port <code>80</code> it will automatically redirect you to
+            <code>443</code> which triggers the process of automatic
+            request/identify/signing/encryption.
+          </p>
+          <pre><code>certbot --nginx -d myapp.com 
+    certbot --nginx -d srv.myapp .com 
+    </code></pre>
+          <p>Reload nginx,</p>
+          <pre><code>service nginx reload 
+    </code></pre>
+        </li>
+        <li><p>That&#39;s it!</p></li>
+      </ol>
+    </div>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+      crossorigin="anonymous"
+    ></script>
+  </body>
+</html>
